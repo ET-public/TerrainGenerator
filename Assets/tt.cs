@@ -9,22 +9,43 @@ public class tt : MonoBehaviour
     public float width = 1;
     public float height = 1;
 
-    public int xosKvadrati = 0;
-    public int yosKvadrati = 0;
+    public int xAxisSquares = 128;
+    public int zAxisSquares = 128;
     public GameObject player;
     
     public ComputeShader cs;
     Dictionary<Vector2Int, Chunk> chunki2 = new Dictionary<Vector2Int, Chunk>();
     public int rendered = 10;
     Vector2Int playerChunk = new Vector2Int(10,10);
+     bool doIt = false;
 
     public void FixedUpdate(){
-        int x = Mathf.RoundToInt(player.transform.position.x/(xosKvadrati));
-        int y = Mathf.RoundToInt(player.transform.position.z/(yosKvadrati));
+            if(Input.GetKeyDown("r") || doIt){
+                spawnam = true;
+                if(pregled){
+                    doIt = true;
+            }else{
+                doIt = false;
+                var tempArr = transform.GetComponentInChildren<Transform>();
+                foreach (Transform item in tempArr)
+                {
+                    Destroy(item.gameObject);
+                }
+                player.transform.position = new Vector3(player.transform.position.x, 500, player.transform.position.z);
+                playerChunk = new Vector2Int(10,10);
+                chunki2.Clear();
+                print("hello");
+                spawnam = false;
+                pregled = false;
+                Start();
+            }
+        }
+        int x = Mathf.RoundToInt(player.transform.position.x/(xAxisSquares));
+        int y = Mathf.RoundToInt(player.transform.position.z/(zAxisSquares));
         if ((x != playerChunk.x || y != playerChunk.y) && !spawnam && !pregled){
             playerChunk.x = x;
             playerChunk.y = y;
-            voda.transform.position = new Vector3(player.transform.position.x-3000, 44, player.transform.position.z-3000);
+            water.transform.position = new Vector3(player.transform.position.x-3000, 44, player.transform.position.z-3000);
             StartCoroutine(spawnChunk(rendered, x, y));
             
            
@@ -52,19 +73,19 @@ public class tt : MonoBehaviour
         {
             float dl = (player.transform.position - item.Value.g.transform.position).magnitude;
             
-            if (Mathf.RoundToInt(dl/2)/xosKvadrati > rendered/2f){
+            if (Mathf.RoundToInt(dl/2)/xAxisSquares > rendered/2f){
                 Destroy(item.Value.g);
                 chunki3.Remove(item.Key);
             }else{
-                int temp = Mathf.Clamp(Mathf.RoundToInt(dl/(xosKvadrati*width*2f))-1,0,6);
+                int temp = Mathf.Clamp(Mathf.RoundToInt(dl/(xAxisSquares*width*2f))-1,0,6);
                 yieldCheck += 36 - temp*temp;
                 if (yieldCheck >= 100){
                     yield return null;
                     yieldCheck = 0;
                 }
                 item.Value.updateLOD(temp);
-                
-                
+
+
             }
         }
         //the changed data is transfered to the original dictionary
@@ -92,18 +113,18 @@ public class tt : MonoBehaviour
                 if not we create a new chunk and store it and the intVector of its position in the grid and not world position*/
                 Vector2Int check = new Vector2Int(x +i, y+j);
                 if(!chunki2.ContainsKey(check)){
-                    Vector3 pos = new Vector3(check.x*xosKvadrati*width, 0, check.y*yosKvadrati*height);
+                    Vector3 pos = new Vector3(check.x*xAxisSquares*width, 0, check.y*zAxisSquares*height);
                     float dl = (player.transform.position - pos).magnitude;
                     //if the chunk is too far we skip it
-                    if (Mathf.RoundToInt(dl/2)/xosKvadrati > rendered/2f){
+                    if (Mathf.RoundToInt(dl/2)/xAxisSquares > rendered/2f){
                         continue;
                     }
                     GameObject temp = Instantiate(anchor, transform);
                     temp.transform.position = pos;
                     int renderDistance = Mathf.Clamp(Mathf.Clamp(Mathf.RoundToInt(dl),0,7)-1,0,6);
-                    Chunk ttemp = new Chunk((int)(xosKvadrati),
-                        (int)(yosKvadrati), width,
-                        height, mat,
+                    Chunk ttemp = new Chunk((int)(xAxisSquares),
+                        (int)(zAxisSquares), width,
+                        height, terrainMaterial,
                         temp, cs, seed);
                     chunki2.Add(new Vector2Int(check.x,check.y), ttemp);
                     yieldCheck += 36-renderDistance*renderDistance;
@@ -128,10 +149,10 @@ public class tt : MonoBehaviour
         
     }
 
-    public Material mat;
+    public Material terrainMaterial;
     public GameObject anchor;
-    public Material vodaMat;
-    GameObject voda;
+    public Material waterMat;
+    GameObject water;
     public static int[][] test = new int[7][];
     public static Vector3[][] pozicije = new Vector3[7][];
     //we pregenerate the triangles and positions for use in meshes
@@ -145,13 +166,13 @@ public class tt : MonoBehaviour
 
         for (int i = 0; i < test.Length; i++)
         {
-            test[i] = tris2(xosKvadrati, yosKvadrati, i);
-            pozicije[i] = Pozicije(xosKvadrati, yosKvadrati, i);
+            test[i] = tris2(xAxisSquares, zAxisSquares, i);
+            pozicije[i] = Pozicije(xAxisSquares, zAxisSquares, i);
         }
-        voda = Instantiate(anchor, transform);
-        MeshRenderer meshRenderer2 = voda.AddComponent<MeshRenderer>();
-        meshRenderer2.sharedMaterial = vodaMat;
-        MeshFilter meshFilter2 = voda.AddComponent<MeshFilter>();
+        water = Instantiate(anchor, transform);
+        MeshRenderer meshRenderer2 = water.AddComponent<MeshRenderer>();
+        meshRenderer2.sharedMaterial = waterMat;
+        MeshFilter meshFilter2 = water.AddComponent<MeshFilter>();
         int a = 2;
         Vector3[] verti = new Vector3[a*a];
         for (int y = 0; y < a; y++)
@@ -182,7 +203,7 @@ public class tt : MonoBehaviour
         mesh2.vertices = verti;
         mesh2.triangles = tris;
         meshFilter2.mesh = mesh2;
-        voda.transform.localScale = new Vector3(6000f,1,6000f);
+        water.transform.localScale = new Vector3(6000f,1,6000f);
     }
     public Vector2Int updateLOD(int ostkx, int ostky, int quality){
         quality = Mathf.Clamp(quality,0,6);
@@ -238,19 +259,19 @@ public class tt : MonoBehaviour
 }
 
 public class Chunk{
-    float velikostKx;
-    float velikostKy;
+    float width;
+    float height;
     Mesh mesh;
     MeshRenderer meshRenderer;
     MeshFilter meshFilter;
     public GameObject g;
     Material mat;
-    int stkx;
-    int stky;
-    int ostkx;
-    int ostky;
-    float ovelikostKx;
-    float ovelikostKy;
+    int xAxisSquares;
+    int zAxisSquares;
+    int oxAxisSquares;
+    int ozAxisSquares;
+    float oWidth;
+    float oHeight;
     //old quality equals -1 so it doesnt interfere at the start before the mesh is generated
     public int oldQuality = -1;
     public ComputeShader cs;
@@ -264,15 +285,15 @@ public class Chunk{
     mat is the material
     g is the GameObject for this chunk
     */
-    public Chunk(int _stkx, int _stky, float vkx, float vky, Material _mat, GameObject _g, ComputeShader _cs, Vector2Int _seed){
-        stkx = _stkx;
-        stky = _stky;
-        ostkx = _stkx;
-        ostky = _stky;
-        velikostKx = vkx;
-        velikostKy = vky;
-        ovelikostKx = vkx;
-        ovelikostKy = vky;
+    public Chunk(int _xAxisSquares, int _zAxisSquares, float _width, float _height, Material _mat, GameObject _g, ComputeShader _cs, Vector2Int _seed){
+        xAxisSquares = _xAxisSquares;
+        zAxisSquares = _zAxisSquares;
+        oxAxisSquares = _xAxisSquares;
+        ozAxisSquares = _zAxisSquares;
+        width = _width;
+        height = _height;
+        oWidth = _width;
+        oHeight = _height;
         mat = _mat;
         g = _g;
         cs = _cs;
@@ -289,10 +310,10 @@ public class Chunk{
         quality = Mathf.Clamp(quality,0,6);
         if (oldQuality != quality){
             oldQuality = quality;
-            velikostKx = ovelikostKx*Mathf.Pow(2, quality);
-            velikostKy = ovelikostKy*Mathf.Pow(2, quality);
-            stkx = (int)(ostkx/Mathf.Pow(2, quality));
-            stky = (int)(ostky/Mathf.Pow(2, quality));
+            width = oWidth*Mathf.Pow(2, quality);
+            height = oHeight*Mathf.Pow(2, quality);
+            xAxisSquares = (int)(oxAxisSquares/Mathf.Pow(2, quality));
+            zAxisSquares = (int)(ozAxisSquares/Mathf.Pow(2, quality));
             ustvariChunk(quality);
         }
     }
@@ -302,21 +323,19 @@ public class Chunk{
             meshRenderer.sharedMaterial = mat;
             meshFilter = g.AddComponent<MeshFilter>();
         }
-        Vector2[] uvs = new Vector2[(stkx+1)*(stky+1)];
-        for (int i = 0; i < stkx+1; i++)
+        Vector2[] uvs = new Vector2[(xAxisSquares+1)*(zAxisSquares+1)];
+        for (int i = 0; i < xAxisSquares+1; i++)
         {
-            for (int j = 0; j < stky+1; j++)
+            for (int j = 0; j < zAxisSquares+1; j++)
             {
-                uvs[j*(stkx+1) + i] = new Vector2(i*velikostKx,j*velikostKy);
+                uvs[j*(xAxisSquares+1) + i] = new Vector2(i*width,j*height);
             }
         }
 
         mesh = new Mesh();
         
-        //mesh.vertices = verts2(stkx, stky);
-        mesh.vertices = vis(stkx,stky, quality);
+        mesh.vertices = vis(xAxisSquares,zAxisSquares, quality);
         mesh.triangles = tt.test[quality];
-        //mesh.triangles = tris2(stkx, stky);
         
         mesh.uv = uvs;
 
@@ -356,12 +375,12 @@ public class Chunk{
 
         ComputeBuffer cb  = new ComputeBuffer(inVisine.Length, 12);
         cb.SetData(inVisine);
-        cs.SetInt("vkx", stkx);
+        cs.SetInt("vkx", xAxisSquares);
         cs.SetFloat("xpos", g.transform.position.x + seed.x);
         cs.SetFloat("zpos", g.transform.position.z + seed.y);
         cs.SetFloat("seedx", seed.x);
         cs.SetFloat("seedy", seed.y);
-        cs.SetFloat("velikost", velikostKx);
+        cs.SetFloat("velikost", width);
         cs.SetFloat("razdalja", 400000);
         int kernel = cs.FindKernel("CSMain");
         cs.SetBuffer(kernel, "Result", cb);

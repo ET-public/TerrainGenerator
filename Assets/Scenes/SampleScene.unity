@@ -239,7 +239,7 @@ PrefabInstance:
     - target: {fileID: 4459864850019384738, guid: 6bacecc4f3df9584198879c73a6b6c36,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 100
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 4459864850019384738, guid: 6bacecc4f3df9584198879c73a6b6c36,
         type: 3}
@@ -349,14 +349,12 @@ MonoBehaviour:
   scales: []
   width: 1
   height: 1
-  noise: 0.025
-  amplitude: 20
-  xosKvadrati: 128
-  yosKvadrati: 128
+  xAxisSquares: 128
+  zAxisSquares: 128
   player: {fileID: 1224140651}
   cs: {fileID: 7200000, guid: 48ed6f3afdbb0eb498f74ec730be84d9, type: 3}
   rendered: 20
-  mat: {fileID: 2100000, guid: 40121599d6d7fb644a40c0c56178ca3f, type: 2}
+  terrainMaterial: {fileID: 2100000, guid: 40121599d6d7fb644a40c0c56178ca3f, type: 2}
   anchor: {fileID: 4565179939175679592, guid: b84831c0d5eb49243b165dd5da324f9a, type: 3}
-  vodaMat: {fileID: 2100000, guid: e514648f7c5e44447a605ffc4f017aee, type: 2}
+  waterMat: {fileID: 2100000, guid: e514648f7c5e44447a605ffc4f017aee, type: 2}
   seed: {x: 0, y: 0}
