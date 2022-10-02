@@ -20,10 +20,13 @@ public class tt : MonoBehaviour
      bool doIt = false;
 
     public void FixedUpdate(){
-            if(Input.GetKeyDown("r") || doIt){
-                spawnam = true;
-                if(pregled){
-                    doIt = true;
+        if(Input.GetButtonDown("Cancel")){
+            Application.Quit();
+        }
+        if(Input.GetKeyDown("r") || doIt){
+            spawnam = true;
+            if(pregled){
+                doIt = true;
             }else{
                 doIt = false;
                 var tempArr = transform.GetComponentInChildren<Transform>();
